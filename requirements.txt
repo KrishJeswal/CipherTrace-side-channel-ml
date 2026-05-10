@@ -1,0 +1,13 @@
+numpy
+pandas
+h5py
+scikit-learn
+xgboost
+shap
+matplotlib
+seaborn
+streamlit
+joblib
+scipy
+ipykernel
+-e .
