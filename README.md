@@ -202,8 +202,8 @@ python verify.py
 | Project structure setup | Done |
 | Dataset download + processing | Done |
 | Data verification | Done |
-| EDA notebook | In progress |
-| Feature engineering | Pending |
+| EDA notebook | Done |
+| Feature engineering | Done |
 | Model training | Pending |
 | GE evaluation | Pending |
 | SHAP analysis | Pending |

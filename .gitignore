@@ -195,6 +195,14 @@ artifacts/*.png
 artifacts/*.pdf
 artifacts/*.svg
 
+# Ingested arrays
+artifacts/ingested/
+artifacts/transformed/
+
+# Processed dataset
+artifacts/raw/ASCAD_processed.h5
+artifacts/raw/*.png
+
 # --- MLflow experiment tracking ---
 mlruns/
 mlflow.db
