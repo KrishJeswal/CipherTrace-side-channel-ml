@@ -55,10 +55,10 @@ def get_models() -> Dict[str, Any]:
             use_label_encoder=False, eval_metric="mlogloss",
             n_jobs=-1, random_state=42
         ),
-        # "svm": SVC(
-        #     kernel="rbf", C=10, gamma="scale",
-        #     probability=True, random_state=42
-        # ),
+        "svm": SVC(
+            kernel="rbf", C=10, gamma="scale",
+            probability=True, random_state=42
+        ),
         "mlp": MLPClassifier(
             hidden_layer_sizes=(256, 128),
             activation="relu", max_iter=200,

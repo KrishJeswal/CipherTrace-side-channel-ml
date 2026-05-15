@@ -206,8 +206,8 @@ python verify.py
 | Feature engineering | Done |
 | Model training | Done |
 | GE evaluation | Done |
-| SHAP analysis | Pending |
-| HW vs ID comparison | Pending |
+| SHAP analysis | Done |
+| HW vs ID comparison | Done |
 | Streamlit app | Pending |
 | Research paper | In progress |
 
@@ -215,7 +215,7 @@ python verify.py
 
 ## Target Publication
 
-**Primary:** IEEE ISCAS 2026 (International Symposium on Circuits and Systems)  
+**Primary:** IEEE Access 
 **Backup:** INDOCRYPT 2025
 
 ---
