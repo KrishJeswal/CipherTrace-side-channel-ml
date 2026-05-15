@@ -204,8 +204,8 @@ python verify.py
 | Data verification | Done |
 | EDA notebook | Done |
 | Feature engineering | Done |
-| Model training | Pending |
-| GE evaluation | Pending |
+| Model training | Done |
+| GE evaluation | Done |
 | SHAP analysis | Pending |
 | HW vs ID comparison | Pending |
 | Streamlit app | Pending |
