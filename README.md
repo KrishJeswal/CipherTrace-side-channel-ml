@@ -208,7 +208,7 @@ python verify.py
 | GE evaluation | Done |
 | SHAP analysis | Done |
 | HW vs ID comparison | Done |
-| Streamlit app | Pending |
+| Streamlit app | In progress |
 | Research paper | In progress |
 
 ---
