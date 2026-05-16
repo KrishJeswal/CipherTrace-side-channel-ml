@@ -1,53 +1,77 @@
-# ML-Based Side-Channel Attack on AES-128
+# CipherTrace
 
-> Classical Machine Learning for Side-Channel Analysis: A Systematic Study of Feature Engineering Strategies with SHAP-Based Leakage Localization
+**ML-based side-channel attack on masked AES-128.**  
+Systematic evaluation of feature engineering strategies for profiling attacks, with SHAP leakage localization and a leakage model comparison.
 
-**Author:** Krish Jeswal | Electronics & Telecommunication Engineering, RVCE (Batch 2024–2028)  
-**GitHub:** [KrishJeswal](https://github.com/KrishJeswal) | **LinkedIn:** [krishjeswal](https://linkedin.com/in/krishjeswal)
-
----
-
-## What This Project Is
-
-This is an end-to-end machine learning pipeline that performs a **profiling side-channel attack on AES-128 encryption** using power traces from the ASCAD dataset. It has two parallel goals:
-
-1. **Research paper** — A systematic comparison of classical ML classifiers and feature engineering strategies for side-channel analysis, evaluated using Guessing Entropy and SHAP-based leakage localization. Target venue: IEEE ISCAS 2026.
-
-2. **Portfolio project** — A production-grade ML pipeline following modular software engineering principles (data ingestion → preprocessing → training → evaluation → deployment).
-
-### The Core Idea
-
-When a microcontroller runs AES-128 encryption, its power consumption leaks information about the secret key. By recording thousands of these power measurements (traces) and training ML models to detect patterns, an attacker can statistically recover the encryption key — without ever breaking the mathematics of AES.
+> Paper submitted to IEEE Access, May 2026.
 
 ---
 
-## Novel Research Contributions
+## What this is
 
-**Contribution 1 — Systematic POI × Model Grid:**
-Full comparison of 6 classifiers × 3 POI extraction strategies × 4 values of k, evaluated by Guessing Entropy (not just accuracy).
+A complete profiling attack pipeline against a first-order Boolean masked AES-128 implementation. The target is the ASCAD fixed-key dataset — 50,000 power traces from an ATMega8515 captured by ANSSI (French National Cybersecurity Agency).
 
-**Contribution 2 — SHAP Leakage Localization:**
-SHAP (SHapley Additive exPlanations) applied to identify which time samples in a power trace leak key information, producing an interpretable leakage map overlaid with the SNR plot.
+The core question: given a power trace recorded during AES encryption, can a classical ML model recover the secret key? And if so, which feature engineering strategy and classifier combination works best — measured not by accuracy, but by Guessing Entropy.
 
-**Contribution 3 — Leakage Model Comparison:**
-Systematic comparison of Hamming Weight (9 classes) vs Identity (256 classes) labeling schemes across classifiers, with GE curves and NtD as evaluation metrics.
+Three novel findings:
+
+- **Macro F1 does not predict GE.** Decision Tree had the best F1 (0.1094) and one of the worst GE values (148.86). MLP had mid-range F1 and the best GE (16.36 at k=50 with PCA).
+- **ANOVA is actively harmful on masked AES.** It selects mask-correlated samples instead of key-correlated ones, pushing GE above the random baseline of 127.
+- **Identity labels break the key. HW labels do not.** Replacing 9-class Hamming Weight labels with 256-class Identity labels reduces GE from 12.03 to 0.46 at 500 traces — near-complete key recovery.
 
 ---
 
-## Dataset — ASCAD (ANSSI)
+## Results
+
+### Classification Performance (SNR k=200)
+
+| Classifier | Accuracy | Macro F1 |
+|---|---|---|
+| Random Forest | **0.2713** | 0.0799 |
+| XGBoost | 0.2675 | 0.0871 |
+| MLP | 0.2612 | 0.0867 |
+| Logistic Regression | 0.2633 | 0.0748 |
+| Decision Tree | 0.2341 | **0.1094** |
+
+Random baseline: accuracy = 0.111, Macro F1 ≈ 0.111.
+
+### Guessing Entropy at 500 Traces (k=50)
+
+| Classifier | SNR | ANOVA | PCA |
+|---|---|---|---|
+| MLP | 53.49 | 138.23 | **16.36 ★** |
+| XGBoost | 110.06 | 146.19 | 102.07 |
+| Decision Tree | 148.86 | 113.29 | 100.75 |
+| Random Forest | 121.86 | 146.66 | 134.45 |
+| SVM | 126.63 | — | — |
+| Logistic Regression | 151.76 | 149.91 | 153.82 |
+
+Random baseline GE = 127.
+
+### HW vs. Identity (MLP + PCA k=100)
+
+| Leakage Model | Classes | GE@100 | GE@500 | NtD |
+|---|---|---|---|---|
+| Hamming Weight | 9 | 51.34 | 12.03 | Not reached |
+| Identity | 256 | 9.81 | **0.46** | ~500 traces |
+
+---
+
+## Dataset
+
+**ASCAD fixed-key** — download from [data.gouv.fr](https://www.data.gouv.fr/en/datasets/ascad-anssi-sca-database/)
 
 | Property | Value |
 |---|---|
-| Source | French National Cybersecurity Agency (ANSSI) |
-| Device | ATMega8515 microcontroller |
-| Implementation | Masked AES-128 (first-order Boolean masking) |
 | Profiling traces | 50,000 |
 | Attack traces | 10,000 |
-| Samples per trace | 700 (windowed around SubBytes for byte 2) |
-| Target | Key byte at index 2 |
-| Download | [data.gouv.fr](https://www.data.gouv.fr/s/resources/ascad/20180530-163000/ASCAD_data.zip) |
+| Samples per trace | 700 |
+| Target byte index | 2 |
+| Correct key byte | 0xe0 (224) |
+| Countermeasure | First-order Boolean masking |
+| Max SNR | 0.0032 |
 
-> **Note:** The zip contains raw traces (`ATMega8515_raw_traces.h5`, ~5.6 GB). Run `generate_ascad.py` after downloading to produce the processed file used by the pipeline.
+Place the downloaded `ASCAD.h5` file at `data/ASCAD.h5` before running anything.
 
 ---
 
@@ -57,173 +81,91 @@ Systematic comparison of Hamming Weight (9 classes) vs Identity (256 classes) la
 side-channel-ml/
 ├── src/
 │   ├── components/
-│   │   ├── data_ingestion.py        # Load ASCAD_processed.h5, save splits
-│   │   ├── data_transformation.py   # SNR, ANOVA, PCA feature engineering
-│   │   └── model_trainer.py         # Train 6 models, save with joblib
+│   │   ├── data_ingestion.py        # Load ASCAD.h5, split profiling/attack sets
+│   │   ├── data_transformation.py   # SNR, ANOVA, PCA feature extraction pipeline
+│   │   └── model_trainer.py         # Train 6 classifiers, 5-fold CV, joblib save
 │   ├── pipeline/
 │   │   ├── train_pipeline.py        # Orchestrates full training flow
-│   │   └── predict_pipeline.py      # Load model, predict HW from new trace
-│   ├── utils.py                     # GE computation, SHAP helpers
-│   ├── logger.py                    # File-based logging
-│   └── exception.py                 # Custom exception handler
+│   │   └── predict_pipeline.py      # Load model, compute GE on attack traces
+│   ├── utils.py                     # GE computation, SNR, SHAP helpers
+│   ├── logger.py
+│   └── exception.py
 ├── notebooks/
-│   ├── 01_EDA.ipynb                 # Trace visualization, label distribution
-│   ├── 02_feature_engineering.ipynb # SNR, ANOVA, PCA comparison
-│   ├── 03_model_comparison.ipynb    # 6 models × 4 feature strategies
-│   └── 04_novel_contribution.ipynb  # GE curves, SHAP, HW vs ID
-├── artifacts/
-│   ├── raw/                         # ASCAD_processed.h5 (not tracked in git)
-│   ├── models/                      # Saved models (not tracked in git)
-│   └── logs/                        # Runtime logs (not tracked in git)
-├── generate_ascad.py                # One-time: raw traces → processed HDF5
-├── verify.py                        # Sanity check: confirms data loads correctly
-├── app.py                           # Streamlit deployment app
+│   ├── 01_EDA.ipynb                 # Trace visualization, SNR, label distribution
+│   ├── 02_feature_engineering.ipynb # POI strategy comparison, PCA variance
+│   ├── 03_model_comparison.ipynb    # 72-run grid, GE heatmap, k sweep
+│   └── 04_novel_contributions.ipynb # SHAP analysis, HW vs. Identity GE curves
+├── artifacts/                       # Saved models and processed arrays
+├── app.py                           # Streamlit: upload trace → predict key byte
+├── requirements.txt
 ├── setup.py
-└── requirements.txt
+└── README.md
 ```
-
----
-
-## ML Pipeline
-
-```
-ASCAD Raw Traces (5.6 GB)
-        ↓  generate_ascad.py
-ASCAD Processed (1.7 GB, 700 samples/trace)
-        ↓  data_ingestion.py
-Load traces + plaintext + key metadata
-        ↓  Label generation
-HW labels = HW(AES_SBOX[plaintext[2] XOR key[2]])
-        ↓  data_transformation.py
-POI Extraction: SNR / ANOVA / PCA  (700 → 50 features)
-        ↓  model_trainer.py
-Train: LR, DT, RF, XGBoost, SVM, MLP
-Evaluate: Accuracy, Macro F1, 5-fold CV
-        ↓  utils.py
-Guessing Entropy computation → key recovery
-        ↓  notebooks/04
-SHAP leakage localization + HW vs ID comparison
-        ↓  app.py
-Streamlit: upload trace → predict HW class
-```
-
----
-
-## Models Compared
-
-| Model | Type | Expected Role |
-|---|---|---|
-| Logistic Regression | Linear | Baseline |
-| Decision Tree | Tree | Interpretable reference |
-| Random Forest | Ensemble | Strong feature importance |
-| XGBoost | Gradient Boosting | Expected best GE |
-| SVM (RBF kernel) | Kernel method | SCA literature benchmark |
-| MLP | Neural network | Bridge to deep learning |
-
----
-
-## Feature Engineering Strategies
-
-| Strategy | Method | Type |
-|---|---|---|
-| Raw traces | No reduction | Baseline |
-| SNR-based POI | Signal-to-Noise Ratio | Domain-specific |
-| ANOVA F-test | SelectKBest (sklearn) | Statistical |
-| PCA | Principal Component Analysis | Unsupervised |
-
-Parameter sweep: k ∈ {20, 50, 100, 200} POIs for SNR and ANOVA.
-
----
-
-## Evaluation Metrics
-
-| Metric | Used for |
-|---|---|
-| Accuracy | Standard ML (Table 1) |
-| Macro F1 | Primary ML metric — handles class imbalance |
-| 5-fold Stratified CV | Generalization check |
-| Guessing Entropy (GE) | Primary SCA metric — does the attack recover the key? |
-| Number of Traces to Disclosure (NtD) | How many traces needed for GE < 1 |
 
 ---
 
 ## Setup
 
-### Prerequisites
-- Python 3.10+
-- ~8 GB free disk space during setup (reducible to ~2 GB after cleanup)
-
-### Installation
-
 ```bash
-git clone https://github.com/KrishJeswal/side-channel-ml.git
+git clone https://github.com/KrishJeswal/side-channel-ml
 cd side-channel-ml
 
 python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # Mac/Linux
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
-pip install -e .
 pip install -r requirements.txt
 ```
 
-### Dataset
+Place `ASCAD.h5` at `data/ASCAD.h5`, then verify the dataset:
 
 ```bash
-# Download (~2.8 GB zip)
-# Windows PowerShell
-Invoke-WebRequest -Uri "https://www.data.gouv.fr/s/resources/ascad/20180530-163000/ASCAD_data.zip" -OutFile "artifacts/raw/ASCAD_data.zip"
-
-# Mac/Linux
-wget -O artifacts/raw/ASCAD_data.zip https://www.data.gouv.fr/s/resources/ascad/20180530-163000/ASCAD_data.zip
-
-# Unzip
-Expand-Archive -Path artifacts/raw/ASCAD_data.zip -DestinationPath artifacts/raw/   # Windows
-# unzip artifacts/raw/ASCAD_data.zip -d artifacts/raw/                               # Mac/Linux
-
-# Move the raw traces file (the actual dataset is ATMega8515_raw_traces.h5)
-mv artifacts/raw/ASCAD_data/ASCAD_databases/ATMega8515_raw_traces.h5 artifacts/raw/ASCAD.h5
-rm -rf artifacts/raw/ASCAD_data artifacts/raw/ASCAD_data.zip
-
-# Generate the processed file (takes ~5 minutes)
-python generate_ascad.py
-
-# Verify everything loaded correctly
 python verify.py
-# Expected: ALL CHECKS PASSED
+# Expected: profiling_traces (50000, 700), attack_traces (10000, 700)
 ```
 
 ---
 
-## Current Status
+## Running the Pipeline
 
-| Phase | Status |
-|---|---|
-| Project structure setup | Done |
-| Dataset download + processing | Done |
-| Data verification | Done |
-| EDA notebook | Done |
-| Feature engineering | Done |
-| Model training | Done |
-| GE evaluation | Done |
-| SHAP analysis | Done |
-| HW vs ID comparison | Done |
-| Streamlit app | In progress |
-| Research paper | In progress |
+**Full training run:**
+```bash
+python src/pipeline/train_pipeline.py
+```
 
----
+Trains all 6 classifiers across all 3 POI strategies and 4 values of k. Saves models to `artifacts/`.
 
-## Target Publication
+**GE evaluation:**
+```bash
+python src/pipeline/predict_pipeline.py
+```
 
-**Primary:** IEEE Access 
-**Backup:** INDOCRYPT 2025
+**Streamlit app:**
+```bash
+streamlit run app.py
+```
 
 ---
 
-## References
+## Tech Stack
 
-- Benadjila et al. (2020) — ASCAD database and deep learning for SCA
-- Maghrebi et al. (2016) — Breaking cryptographic implementations using deep learning
-- Picek et al. (2018) — The curse of class imbalance in SCA evaluations
-- Lundberg & Lee (2017) — A unified approach to interpreting model predictions (SHAP)
-- Standaert et al. (2009) — A unified framework for side-channel key recovery analysis
+- **Data** — h5py, numpy, pandas
+- **ML** — scikit-learn, XGBoost
+- **Explainability** — SHAP
+- **Visualization** — matplotlib, seaborn
+- **App** — Streamlit
+
+---
+
+## Paper
+
+**Systematic Evaluation of Machine Learning Classifiers and Feature Engineering Strategies for Side-Channel Attacks on Masked AES-128**  
+Krish Jeswal — RV College of Engineering, Bangalore  
+*Submitted to IEEE Access, May 2026*
+
+---
+
+## Author
+
+**Krish Jeswal**  
+Electronics and Communication Engineering, RVCE (Batch 2024–2028)  
+[GitHub](https://github.com/KrishJeswal) · [LinkedIn](https://linkedin.com/in/krishjeswal)
