@@ -59,7 +59,7 @@ Random baseline GE = 127.
 
 ## Dataset
 
-**ASCAD fixed-key** — download from [data.gouv.fr](https://www.data.gouv.fr/en/datasets/ascad-anssi-sca-database/)
+**ASCAD fixed-key** — download from [data.gouv.fr](https://www.data.gouv.fr/datasets/ascad)
 
 | Property | Value |
 |---|---|
