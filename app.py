@@ -9,8 +9,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from src.components.data_transformation import DataTransformationConfig, DataTransformation
 from src.utils import compute_snr, compute_ge, AES_SBOX
 
-# ── Constants ────────────────────────────────────────────────────────────────
-
 CORRECT_KEY_BYTE = 0xe0
 TARGET_BYTE      = 2
 N_TRACES_RANGE   = [10, 25, 50, 100, 200, 500]
@@ -29,16 +27,12 @@ STRATEGY_LABELS = {
     "anova": "ANOVA F-test POI Selection",
 }
 
-# ── Page config ───────────────────────────────────────────────────────────────
-
 st.set_page_config(
     page_title="Side-Channel Attack Demo",
     page_icon="🔐",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# ── CSS ───────────────────────────────────────────────────────────────────────
 
 st.markdown("""
 <style>
@@ -117,8 +111,6 @@ hr { border-color: #1e293b; margin: 1.5rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
 @st.cache_data
 def load_attack_data():
     path = os.path.join("artifacts", "raw", "ASCAD_processed.h5")
@@ -153,16 +145,12 @@ def get_trace_count_ge(ge_values, n):
     return ge_values[N_TRACES_RANGE.index(n)] if n in N_TRACES_RANGE else ge_values[min(3, len(ge_values) - 1)]
 
 
-# ── Header ────────────────────────────────────────────────────────────────────
-
 st.markdown("""
 <div class="main-header">
   <h1>🔐 Side-Channel Attack <span class="accent">Demo</span></h1>
   <p>ML-based profiling attack on AES-128 · ASCAD Dataset · Krish Jeswal, RVCE</p>
 </div>
 """, unsafe_allow_html=True)
-
-# ── Sidebar ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
     st.markdown("### ⚙️ Attack Configuration")
@@ -215,8 +203,6 @@ with st.sidebar:
 
     run_attack = st.button("▶ Run Attack", use_container_width=True)
 
-# ── Load data ─────────────────────────────────────────────────────────────────
-
 with st.spinner("Loading ASCAD dataset..."):
     try:
         X_prof, y_prof, pt_prof, X_atk, pt_atk, snr = load_attack_data()
@@ -225,11 +211,7 @@ with st.spinner("Loading ASCAD dataset..."):
         st.error(f"Failed to load ASCAD_processed.h5: {e}")
         data_ok = False
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
-
 tab1, tab2, tab3 = st.tabs(["🎯 Run Attack", "📈 Dataset Guide", "📚 Technical About"])
-
-# ── TAB 1: ATTACK ─────────────────────────────────────────────────────────────
 
 with tab1:
     if not data_ok:
@@ -319,7 +301,6 @@ with tab1:
             * **NtD**: Exact trace count where GE drops below 1 (correct key locked in as rank #1).
             """)
 
-            # Key rank card — derived directly from GE@500, no redundant recomputation
             correct_key_rank = max(1, int(round(ge_500)) + 1)
 
             if correct_key_rank == 1:
@@ -381,8 +362,6 @@ Best overall (Identity model, 256 classes): **GE=0.46** — key fully broken at 
     else:
         st.info("Configure the attack parameters in the sidebar and click **▶ Run Attack** to begin.")
 
-# ── TAB 2: DATASET ────────────────────────────────────────────────────────────
-
 with tab2:
     if not data_ok:
         st.warning("Dataset not loaded. Ensure ASCAD_processed.h5 is at `artifacts/raw/`.")
@@ -424,8 +403,6 @@ with tab2:
     Distribution matches Binomial B(8, 0.5) — confirms correct label generation.
     Class imbalance is inherent and expected, which is why **Macro F1** is used as the primary metric over accuracy.
     """, unsafe_allow_html=True)
-
-# ── TAB 3: ABOUT ─────────────────────────────────────────────────────────────
 
 with tab3:
     st.markdown("""

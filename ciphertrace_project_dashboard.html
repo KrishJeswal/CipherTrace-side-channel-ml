@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CipherTrace — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0c0c0e;
+    --bg1:       #111114;
+    --bg2:       #17171b;
+    --bg3:       #1e1e23;
+    --bg4:       #26262d;
+    --border:    rgba(255,255,255,0.08);
+    --border2:   rgba(255,255,255,0.14);
+    --text1:     #eeedf5;
+    --text2:     #b8b7c8;
+    --text3:     #7a798e;
+    --purple:    #9080ff;
+    --purple-d:  #3d3580;
+    --purple-l:  #cfc8ff;
+    --purple-bg: #1c1830;
+    --teal:      #22d496;
+    --teal-d:    #0a5e41;
+    --teal-l:    #90f0d0;
+    --teal-bg:   #091f16;
+    --coral:     #ff7a5a;
+    --coral-d:   #7a3020;
+    --coral-l:   #ffbfab;
+    --coral-bg:  #1f1008;
+    --amber:     #f5b040;
+    --amber-bg:  #1f1808;
+    --mono:      'Space Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+    --r-sm:      5px;
+    --r-md:      8px;
+    --r-lg:      12px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text1);
+  }
+
+  body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 24px;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 1080px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── HERO ─────────────────────────────── */
+  .hero {
+    background: var(--bg1);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--r-lg);
+    padding: 20px 26px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(144,128,255,0.13) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: 100px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34,212,150,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+  .hero-eyebrow span {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--purple);
+  }
+  .hero-eyebrow .sep { width: 1px; height: 10px; background: var(--border2); }
+  .hero-eyebrow .venue { color: var(--text3); }
+  .hero h1 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--text1);
+    margin-bottom: 5px;
+  }
+  .hero-sub {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+  }
+  .hero-key { text-align: right; flex-shrink: 0; }
+  .hero-key-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .hero-key-val {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── STAT CARDS ───────────────────────── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 8px;
+  }
+  .stat {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px 15px;
+  }
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .v-white  { color: var(--text1); }
+  .v-green  { color: var(--teal); }
+  .v-purple { color: var(--purple); }
+
+  /* ── MAIN GRID ────────────────────────── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: minmax(0,1.2fr) minmax(0,0.8fr);
+    gap: 10px;
+  }
+
+  .card {
+    background: var(--bg1);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 16px 18px;
+  }
+  .card-title {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  /* ── GE ROWS ──────────────────────────── */
+  .ge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .ge-row:last-of-type { border-bottom: none; }
+  .ge-model {
+    width: 62px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text1);
+    flex-shrink: 0;
+  }
+  .ge-bars { flex: 1; display: flex; gap: 4px; }
+  .ge-bar-wrap { flex: 1; }
+  .ge-bar-lbl {
+    font-size: 8px;
+    color: var(--text3);
+    margin-bottom: 2px;
+    letter-spacing: 0.05em;
+  }
+  .ge-bar-track {
+    height: 5px;
+    background: var(--bg4);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ge-bar-fill { height: 100%; border-radius: 3px; }
+  .ge-nums {
+    font-size: 10px;
+    color: var(--text2);
+    flex-shrink: 0;
+    text-align: right;
+    min-width: 90px;
+    line-height: 1.4;
+  }
+  .ge-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--teal-l);
+    background: var(--teal-bg);
+    padding: 1px 6px;
+    border-radius: 10px;
+    border: 0.5px solid var(--teal-d);
+    white-space: nowrap;
+  }
+  .legend {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .legend-base { font-size: 10px; color: var(--text3); margin-left: auto; }
+
+  /* ── RIGHT COL ────────────────────────── */
+  .right-col { display: flex; flex-direction: column; gap: 10px; }
+
+  /* HW vs Identity */
+  .hw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .hw-box { border-radius: var(--r-md); padding: 10px 12px; }
+  .hw-box.muted { background: var(--bg3); }
+  .hw-box.accent { background: var(--purple-bg); border: 0.5px solid var(--purple-d); }
+  .hw-lbl { font-size: 9px; color: var(--text3); margin-bottom: 4px; line-height: 1.4; }
+  .hw-box.accent .hw-lbl { color: var(--purple); }
+  .hw-val {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+  .hw-box.accent .hw-val { color: var(--purple-l); }
+  .hw-sub { font-size: 9px; color: var(--text3); margin-top: 2px; }
+  .hw-box.accent .hw-sub { color: var(--purple); }
+  .hw-note {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.55;
+    border-top: 0.5px solid var(--border);
+    padding-top: 9px;
+  }
+
+  /* SHAP */
+  .shap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 9px; }
+  .shap-box { background: var(--bg3); border-radius: var(--r-md); padding: 9px 11px; text-align: center; }
+  .shap-box.feat { background: var(--teal-bg); border: 0.5px solid var(--teal-d); }
+  .shap-lbl { font-size: 9px; color: var(--text3); margin-bottom: 3px; }
+  .shap-box.feat .shap-lbl { color: var(--teal); }
+  .shap-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--text1); }
+  .shap-box.feat .shap-val { color: var(--teal-l); }
+  .shap-sub { font-size: 9px; color: var(--text3); margin-top: 1px; }
+  .shap-box.feat .shap-sub { color: var(--teal); }
+  .shap-note { font-size: 11px; color: var(--text2); line-height: 1.55; }
+
+  /* ── FINDINGS ─────────────────────────── */
+  .findings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 10px;
+  }
+  .finding {
+    background: var(--bg1);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 13px 15px 13px 18px;
+    position: relative;
+  }
+  .finding::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    border-radius: var(--r-lg) 0 0 var(--r-lg);
+  }
+  .f1::before { background: var(--purple); }
+  .f2::before { background: var(--coral); }
+  .f3::before { background: var(--teal); }
+  .finding-chips { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .chip-p { background: var(--purple-bg); color: var(--purple-l); }
+  .chip-c { background: var(--coral-bg); color: var(--coral-l); }
+  .chip-g { background: var(--teal-bg); color: var(--teal-l); }
+  .finding-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text1);
+    margin-bottom: 5px;
+  }
+  .finding-body { font-size: 11px; color: var(--text2); line-height: 1.6; }
+
+  /* ── FOOTER ───────────────────────────── */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--border);
+  }
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag {
+    font-size: 10px;
+    padding: 2px 9px;
+    background: var(--bg2);
+    border: 0.5px solid var(--border2);
+    border-radius: 20px;
+    color: var(--text2);
+  }
+  .footer-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .gh { font-family: var(--mono); font-size: 10px; color: var(--text3); text-decoration: none; }
+  .gh:hover { color: var(--purple); }
+  .author-line { font-size: 11px; color: var(--text2); }
+  .author-line strong { color: var(--text1); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-eyebrow">
+          <span>CIPHERTRACE</span>
+          <div class="sep"></div>
+          <span class="venue">IEEE ACCESS · 2026</span>
+        </div>
+        <h1>ML-Based Side-Channel Attack on Masked AES-128</h1>
+        <p class="hero-sub">ASCAD · ATMega8515 · First-order Boolean masking · 72-run grid · ANSSI</p>
+      </div>
+      <div class="hero-key">
+        <div class="hero-key-label">Correct key byte</div>
+        <div class="hero-key-val">0xe0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Profiling traces</div>
+      <div class="stat-val v-white">50k</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Configurations</div>
+      <div class="stat-val v-white">72</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Best GE @ 500 traces</div>
+      <div class="stat-val v-green">16.36</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Identity GE @ 500 traces</div>
+      <div class="stat-val v-purple">0.46</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- GE CARD -->
+    <div class="card">
+      <div class="card-title">Guessing Entropy @ 500 traces · k=50</div>
+
+      <div class="ge-row">
+        <div class="ge-model">MLP</div>
+        <div class="ge-bars">
+          <div class="ge-bar-wrap">
+            <div class="ge-bar-lbl">SNR</div>
+            <div class="ge-bar-track"><div class="ge-bar-fill" style="width:42%;background:#9080ff;"></div></div>
+          </div>
+          <div class="ge-bar-wrap">
+            <div class="ge-bar-lbl">ANOVA</div>
+            <div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#ff7a5a;"></div></div>
+          </div>
+          <div class="ge-bar-wrap">
+            <div class="ge-bar-lbl">PCA</div>
+            <div class="ge-bar-track"><div class="ge-bar-fill" style="width:13%;background:#22d496;"></div></div>
+          </div>
+        </div>
+        <div class="ge-nums">53 / 138 / <span class="ge-badge">16.36 ★</span></div>
+      </div>
+
+      <div class="ge-row">
+        <div class="ge-model">XGBoost</div>
+        <div class="ge-bars">
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:86%;background:#9080ff;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#ff7a5a;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:80%;background:#22d496;"></div></div></div>
+        </div>
+        <div class="ge-nums">110 / 146 / 102</div>
+      </div>
+
+      <div class="ge-row">
+        <div class="ge-model">RF</div>
+        <div class="ge-bars">
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:96%;background:#9080ff;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#ff7a5a;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#22d496;"></div></div></div>
+        </div>
+        <div class="ge-nums">122 / 147 / 134</div>
+      </div>
+
+      <div class="ge-row">
+        <div class="ge-model">DT</div>
+        <div class="ge-bars">
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#9080ff;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:89%;background:#ff7a5a;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:79%;background:#22d496;"></div></div></div>
+        </div>
+        <div class="ge-nums">149 / 113 / 101</div>
+      </div>
+
+      <div class="ge-row">
+        <div class="ge-model">SVM</div>
+        <div class="ge-bars">
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:99%;background:#9080ff;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:0%;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:0%;"></div></div></div>
+        </div>
+        <div class="ge-nums">127 / — / —</div>
+      </div>
+
+      <div class="ge-row">
+        <div class="ge-model">LR</div>
+        <div class="ge-bars">
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#9080ff;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#ff7a5a;"></div></div></div>
+          <div class="ge-bar-wrap"><div class="ge-bar-track"><div class="ge-bar-fill" style="width:100%;background:#22d496;"></div></div></div>
+        </div>
+        <div class="ge-nums">152 / 150 / 154</div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#9080ff;"></div>SNR</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff7a5a;"></div>ANOVA</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#22d496;"></div>PCA</div>
+        <div class="legend-base">random baseline = 127</div>
+      </div>
+    </div>
+
+    <!-- RIGHT COL -->
+    <div class="right-col">
+
+      <div class="card">
+        <div class="card-title">HW vs. Identity labels · MLP + PCA k=100</div>
+        <div class="hw-grid">
+          <div class="hw-box muted">
+            <div class="hw-lbl">Hamming Weight<br>9 classes</div>
+            <div class="hw-val">12.03</div>
+            <div class="hw-sub">GE @ 500 traces</div>
+          </div>
+          <div class="hw-box accent">
+            <div class="hw-lbl">Identity<br>256 classes</div>
+            <div class="hw-val">0.46</div>
+            <div class="hw-sub">GE @ 500 traces ★</div>
+          </div>
+        </div>
+        <div class="hw-note">More output classes → richer log-likelihood → near-complete key recovery. Overturns the standard SCA assumption.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">SHAP leakage localization · MLP + PCA k=100</div>
+        <div class="shap-grid">
+          <div class="shap-box feat">
+            <div class="shap-lbl">Top component</div>
+            <div class="shap-val">PC-0</div>
+            <div class="shap-sub">~2× next importance</div>
+          </div>
+          <div class="shap-box">
+            <div class="shap-lbl">SHAP vs SNR overlap</div>
+            <div class="shap-val">2/10</div>
+            <div class="shap-sub">top-10 features</div>
+          </div>
+        </div>
+        <div class="shap-note">MLP exploits non-linear distributed leakage orthogonal to the SNR map — confirming why PCA preserves what SNR misses.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FINDINGS -->
+  <div class="findings-grid">
+    <div class="finding f1">
+      <div class="finding-chips">
+        <span class="chip chip-p">F1 = 0.1094</span>
+        <span class="chip chip-p">GE = 148.86</span>
+      </div>
+      <div class="finding-title">F1 does not predict GE</div>
+      <div class="finding-body">Decision Tree: best Macro F1, worst GE. MLP: mid F1, best attack. Classification metrics are the wrong criterion for evaluating security tools.</div>
+    </div>
+    <div class="finding f2">
+      <div class="finding-chips">
+        <span class="chip chip-c">overlap 13/50</span>
+        <span class="chip chip-c">GE &gt; 127</span>
+      </div>
+      <div class="finding-title">ANOVA fails on masked AES</div>
+      <div class="finding-body">Selects mask-correlated samples, not key-correlated ones. Pushes GE above random baseline on every classifier — actively worse than no selection.</div>
+    </div>
+    <div class="finding f3">
+      <div class="finding-chips">
+        <span class="chip chip-g">SNR peak = 0.0032</span>
+        <span class="chip chip-g">PCA → 16.36</span>
+      </div>
+      <div class="finding-title">PCA beats domain-standard SNR</div>
+      <div class="finding-body">SNR scores samples independently, missing cross-window correlations. PCA encodes joint statistics across both masking windows — the structure MLP exploits.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="tags">
+      <span class="tag">scikit-learn</span>
+      <span class="tag">XGBoost</span>
+      <span class="tag">SHAP</span>
+      <span class="tag">h5py</span>
+      <span class="tag">Streamlit</span>
+      <span class="tag">Power Analysis</span>
+      <span class="tag">Guessing Entropy</span>
+    </div>
+    <div class="footer-right">
+      <a class="gh" href="https://github.com/KrishJeswal/CipherTrace-side-channel-ml">github.com/KrishJeswal/CipherTrace-side-channel-ml</a>
+      <div class="author-line"><strong>Krish Jeswal</strong> · RVCE ETE 2024–2028</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
