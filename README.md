@@ -253,5 +253,5 @@ Krish Jeswal — RV College of Engineering, Bangalore
 ## Author
 
 **Krish Jeswal**  
-Electronics and Communication Engineering, RVCE (Batch 2024–2028)  
+Electronics and Telecommunication Engineering, RVCE (Batch 2024–2028)  
 [GitHub](https://github.com/KrishJeswal) · [LinkedIn](https://linkedin.com/in/krishjeswal)
