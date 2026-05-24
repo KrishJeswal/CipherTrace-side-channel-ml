@@ -1,9 +1,20 @@
 # CipherTrace
 
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4-orange?logo=scikit-learn&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-2.0-red)
+![SHAP](https://img.shields.io/badge/Explainability-SHAP-blueviolet)
+![Streamlit](https://img.shields.io/badge/App-Streamlit-ff4b4b?logo=streamlit&logoColor=white)
+![Paper](https://img.shields.io/badge/Paper-IEEE%20Access%202026-lightgrey)
+
 **ML-based side-channel attack on masked AES-128.**  
 Systematic evaluation of feature engineering strategies for profiling attacks, with SHAP leakage localization and a leakage model comparison.
 
 > Paper submitted to IEEE Access, May 2026.
+
+---
+
+![CipherTrace Streamlit App](artifacts/screenshot.png)
 
 ---
 
@@ -27,16 +38,16 @@ Three novel findings:
 
 The raw download from ANSSI is a large archive (~800 MB compressed). It does not ship as a ready-to-use `ASCAD.h5` — you need to extract the relevant HDF5 file from it. `generate_ascad.py` handles this: it locates the raw archive, extracts the fixed-key trace file, and writes `ASCAD.h5` to `data/` with the correct profiling/attack split.
 
-| Property | Value |
-|---|---|
-| Profiling traces | 50,000 |
-| Attack traces | 10,000 |
-| Samples per trace | 700 |
-| Target byte index | 2 |
-| Correct key byte | 0xe0 (224) |
-| Countermeasure | First-order Boolean masking |
-| dtype | int8 (cast to float32 before training) |
-| Max SNR | 0.0032 |
+| Property          | Value                                  |
+| ----------------- | -------------------------------------- |
+| Profiling traces  | 50,000                                 |
+| Attack traces     | 10,000                                 |
+| Samples per trace | 700                                    |
+| Target byte index | 2                                      |
+| Correct key byte  | 0xe0 (224)                             |
+| Countermeasure    | First-order Boolean masking            |
+| dtype             | int8 (cast to float32 before training) |
+| Max SNR           | 0.0032                                 |
 
 The low SNR (0.0032 at sample 567) is not a data quality issue — it confirms the masking countermeasure is working correctly. First-order Boolean masking splits every intermediate value into two random shares, making any single time sample uninformative in isolation.
 
@@ -46,35 +57,35 @@ The low SNR (0.0032 at sample 567) is not a data quality issue — it confirms t
 
 ### Classification Performance (SNR k=200)
 
-| Classifier | Accuracy | Macro F1 |
-|---|---|---|
-| Random Forest | **0.2713** | 0.0799 |
-| XGBoost | 0.2675 | 0.0871 |
-| MLP | 0.2612 | 0.0867 |
-| Logistic Regression | 0.2633 | 0.0748 |
-| Decision Tree | 0.2341 | **0.1094** |
+| Classifier          | Accuracy   | Macro F1   |
+| ------------------- | ---------- | ---------- |
+| Random Forest       | **0.2713** | 0.0799     |
+| XGBoost             | 0.2675     | 0.0871     |
+| MLP                 | 0.2612     | 0.0867     |
+| Logistic Regression | 0.2633     | 0.0748     |
+| Decision Tree       | 0.2341     | **0.1094** |
 
 Random baseline: accuracy = 0.111, Macro F1 ≈ 0.111. All models exceed it, confirming real leakage signal is present despite masking.
 
 ### Guessing Entropy at 500 Traces (k=50)
 
-| Classifier | SNR | ANOVA | PCA |
-|---|---|---|---|
-| MLP | 53.49 | 138.23 | **16.36 ★** |
-| XGBoost | 110.06 | 146.19 | 102.07 |
-| Decision Tree | 148.86 | 113.29 | 100.75 |
-| Random Forest | 121.86 | 146.66 | 134.45 |
-| SVM | 126.63 | — | — |
-| Logistic Regression | 151.76 | 149.91 | 153.82 |
+| Classifier          | SNR    | ANOVA  | PCA         |
+| ------------------- | ------ | ------ | ----------- |
+| MLP                 | 53.49  | 138.23 | **16.36 ★** |
+| XGBoost             | 110.06 | 146.19 | 102.07      |
+| Decision Tree       | 148.86 | 113.29 | 100.75      |
+| Random Forest       | 121.86 | 146.66 | 134.45      |
+| SVM                 | 126.63 | —      | —           |
+| Logistic Regression | 151.76 | 149.91 | 153.82      |
 
 Random baseline GE = 127. SVM ANOVA/PCA omitted — runtime exceeded at k=50.
 
 ### HW vs. Identity Labels (MLP + PCA k=100)
 
-| Leakage Model | Classes | GE@100 | GE@500 | NtD |
-|---|---|---|---|---|
-| Hamming Weight | 9 | 51.34 | 12.03 | Not reached |
-| Identity | 256 | 9.81 | **0.46** | ~500 traces |
+| Leakage Model  | Classes | GE@100 | GE@500   | NtD         |
+| -------------- | ------- | ------ | -------- | ----------- |
+| Hamming Weight | 9       | 51.34  | 12.03    | Not reached |
+| Identity       | 256     | 9.81   | **0.46** | ~500 traces |
 
 GE = 0.46 at 500 traces constitutes practical key recovery for the target byte.
 
@@ -158,6 +169,7 @@ If shapes match, you're ready to train.
 ## Running the Pipeline
 
 **Full training run (all 72 configurations):**
+
 ```bash
 python src/pipeline/train_pipeline.py
 ```
@@ -165,11 +177,13 @@ python src/pipeline/train_pipeline.py
 Trains all 6 classifiers across 3 POI strategies and k ∈ {20, 50, 100, 200}. Saves models to `artifacts/`.
 
 **GE evaluation on attack traces:**
+
 ```bash
 python src/pipeline/predict_pipeline.py
 ```
 
 **Explore results in notebooks:**
+
 ```bash
 jupyter notebook notebooks/
 ```
@@ -177,6 +191,7 @@ jupyter notebook notebooks/
 Start with `01_EDA.ipynb` and work through in order.
 
 **Streamlit app:**
+
 ```bash
 streamlit run app.py
 ```

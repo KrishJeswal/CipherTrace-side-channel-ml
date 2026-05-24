@@ -28,8 +28,7 @@ STRATEGY_LABELS = {
 }
 
 st.set_page_config(
-    page_title="Side-Channel Attack Demo",
-    page_icon="🔐",
+    page_title="CipherTrace",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -147,13 +146,13 @@ def get_trace_count_ge(ge_values, n):
 
 st.markdown("""
 <div class="main-header">
-  <h1>🔐 Side-Channel Attack <span class="accent">Demo</span></h1>
+  <h1>CipherTrace: Side-Channel Attack <span class="accent">Demo</span></h1>
   <p>ML-based profiling attack on AES-128 · ASCAD Dataset · Krish Jeswal, RVCE</p>
 </div>
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    st.markdown("### ⚙️ Attack Configuration")
+    st.markdown("### Attack Configuration")
     st.markdown("""
     **Configure your attack variables here:**
     * **Classifier**: The ML algorithm used to predict the key byte.
@@ -187,7 +186,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### 📊 Quick Reference")
+    st.markdown("### Quick Reference")
     st.markdown("""
     <div class="info-box">
     <strong>Best HW Config:</strong><br>
@@ -211,7 +210,7 @@ with st.spinner("Loading ASCAD dataset..."):
         st.error(f"Failed to load ASCAD_processed.h5: {e}")
         data_ok = False
 
-tab1, tab2, tab3 = st.tabs(["🎯 Run Attack", "📈 Dataset Guide", "📚 Technical About"])
+tab1, tab2, tab3 = st.tabs(["Run Attack", "Dataset Guide", "Technical About"])
 
 with tab1:
     if not data_ok:
@@ -219,7 +218,7 @@ with tab1:
         st.stop()
 
     st.markdown("""
-    ### ⚙️ What Happens When You Run an Attack?
+    ### What Happens When You Run an Attack?
     When you click **Run Attack**, the application executes a four-step profiling attack:
 
     1. **Feature Extraction**: Raw power measurements are transformed using your chosen strategy down to `k` features, isolating the most leaky time samples.
@@ -294,7 +293,8 @@ with tab1:
                   <div class="sub">Hamming Weight class</div>
                 </div>""", unsafe_allow_html=True)
 
-            st.markdown("""
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("""                        
             **Understanding Your Results:**
             * **GE @ 500 traces**: Average rank of the correct key out of 256 after 500 traces. Lower is better.
             * **GE @ 100 traces**: Rank after only 100 traces — shows how fast the model learns.
@@ -444,7 +444,7 @@ with tab3:
     <div class="section-title">3. Project Information</div>
 
     * **Author**: Krish Jeswal
-    * **Institute**: RVCE Bengaluru | EC Batch 2024–2028
+    * **Institute**: RVCE Bengaluru | ETE Batch 2024–2028
     * **GitHub**: KrishJeswal
-    * **Target Venue**: IEEE ISCAS 2026
+    * **Target Venue**: IEEE Access 2026
     """, unsafe_allow_html=True)
